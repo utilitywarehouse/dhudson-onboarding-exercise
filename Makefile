@@ -33,7 +33,7 @@ ci-docker-auth:		## Docker login for registry access
 	@docker login -u $(DOCKER_ID) -p $(UW_DOCKER_PASS) $(DOCKER_REGISTRY)
 
 ci-docker-build: ci-docker-auth
-	docker build -t $(DOCKER_REPOSITORY):$(GIT_HASH) . --build-arg SERVICE=$(SERVICE) --build-arg GO=$(GO)
+	docker build -t $(DOCKER_REPOSITORY):$(GIT_HASH) . --build-arg SERVICE=$(SERVICE)
 	docker tag $(DOCKER_REPOSITORY):$(GIT_HASH) $(DOCKER_REPOSITORY):latest
 
 ci-docker-push: ci-docker-build
