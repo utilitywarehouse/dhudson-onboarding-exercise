@@ -24,6 +24,9 @@ clean:			## Removes compiled artifacts
 build: clean
 	$(GO) build -o bin/$(SERVICE) ./
 
+test:
+	$(GO) test ./...
+
 
 ci-docker-auth:		## Docker login for registry access
 	@echo "Logging in to $(DOCKER_REGISTRY) as $(DOCKER_ID)"

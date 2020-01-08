@@ -21,5 +21,5 @@ func main() {
 	mux.HandleFunc("/time", timehandler.New(logger, "Current time: ", time.RFC3339))
 
 	logger.Info("Listening...")
-	http.ListenAndServe(":3030", mux)
+	logger.WithError(http.ListenAndServe(":3030", mux)).Info("Finished serving")
 }
