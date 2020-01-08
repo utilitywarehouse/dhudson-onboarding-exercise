@@ -25,14 +25,9 @@ build: clean
 	$(GO) build -o bin/$(SERVICE) ./
 
 
-.PHONY: test
-test: mock
-	$(GO) test ./...
-
-
 ci-docker-auth:		## Docker login for registry access
 	@echo "Logging in to $(DOCKER_REGISTRY) as $(DOCKER_ID)"
-	@docker login -u $(DOCKER_ID) -p $(DOCKER_PASSWORD) $(DOCKER_REGISTRY)
+	@docker login -u $(DOCKER_ID) -p $(UW_DOCKER_PASS) $(DOCKER_REGISTRY)
 
 ci-docker-build: ci-docker-auth
 	docker build -t $(DOCKER_REPOSITORY):$(GIT_HASH) . --build-arg SERVICE=$(SERVICE) --build-arg GO=$(GO)
@@ -40,17 +35,6 @@ ci-docker-build: ci-docker-auth
 
 ci-docker-push: ci-docker-build
 	docker push $(DOCKER_REPOSITORY)
-
-docker-build: docker-auth
-	docker build . -t $(DOCKER_REPOSITORY):$(GIT_HASH) -t $(DOCKER_REPOSITORY):latest
-
-docker-auth:
-	@echo "Logging in to $(DOCKER_REGISTRY)"
-	@docker login -u $(DOCKER_ID) -p $(UW_DOCKER_PASS) $(DOCKER_REGISTRY)
-
-docker-push:
-	docker push $(DOCKER_REPOSITORY):$(GIT_HASH)
-	docker push $(DOCKER_REPOSITORY):latest
 
 download:
 	${GO} mod download

@@ -1,0 +1,50 @@
+version: 2
+
+container_config: &container_config
+  working_directory: /go/src/github.com/utilitywarehouse/dhudson-onboarding-exercise
+  docker:
+    - image: circleci/golang:1.13
+
+jobs:
+  build:
+    <<: *container_config
+    steps:
+      - checkout
+      - run: git config --global url."https://$GITHUB_TOKEN:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+      - run: make download
+      - run: make build
+      - run: make lint
+      - run: make test
+      - setup_remote_docker:
+          version: 18.06.0-ce
+      - run: make ci-docker-build
+
+  push:
+    <<: *container_config
+    steps:
+      - checkout
+      - run: git config --global url."https://$GITHUB_TOKEN:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+      - run: make download
+      - run: make build
+      - run: make lint
+      - run: make test
+      - setup_remote_docker:
+          version: 18.06.0-ce
+      - run: make ci-docker-push
+
+workflows:
+  version: 2
+  development:
+    jobs:
+    - build:
+        context: onboarding
+        filters:
+          branches:
+            ignore: master
+  push:
+    jobs:
+    - push:
+        context: onboarding
+        filters:
+          branches:
+            only: master
