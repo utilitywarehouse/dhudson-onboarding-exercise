@@ -8,10 +8,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/utilitywarehouse/dhudson-onboarding-exercise/timehandler"
+)
+
+var (
+	testCounter = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "requests_count",
+		Help: "Total number of requests received",
+	})
 )
 
 func TestNew(t *testing.T) {
@@ -41,7 +50,7 @@ func TestNew(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			th := timehandler.New(logger, test.prefix, test.timeFormat)
+			th := timehandler.New(logger, testCounter, test.prefix, test.timeFormat)
 
 			recorder := httptest.NewRecorder()
 

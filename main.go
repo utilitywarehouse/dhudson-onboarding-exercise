@@ -4,10 +4,18 @@ import (
 	"net/http"
 	"time"
 
-	op "contrib.go.opencensus.io/exporter/prometheus"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/utilitywarehouse/dhudson-onboarding-exercise/timehandler"
-	"go.opencensus.io/stats/view"
+)
+
+var (
+	counter = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "requests_count",
+		Help: "Total number of requests received",
+	})
 )
 
 func main() {
@@ -18,25 +26,19 @@ func main() {
 	}
 	logger.Level = logrus.DebugLevel
 
-	exporter, err := op.NewExporter(op.Options{})
-	if err != nil {
-		logger.WithError(err).Warn("Failed to set up new exporter")
-		return
-	}
-
-	view.RegisterExporter(exporter)
-
-	err = view.Register(timehandler.DefaultViews...)
-	if err != nil {
-		logger.WithError(err).Warn("Failed to set up new exporter")
-		return
-	}
+	promMux := http.NewServeMux()
+	promMux.Handle("/__/metrics", promhttp.Handler())
+	go func() {
+		err := http.ListenAndServe(":8081", promMux)
+		if err != nil {
+			logger.WithError(err).Warn("Failed to serve metrics")
+			return
+		}
+	}()
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/time", timehandler.New(logger, "Current time: ", time.RFC3339))
-
-	mux.Handle("/metrics", exporter)
+	mux.HandleFunc("/time", timehandler.New(logger, counter, "Current time: ", time.RFC3339))
 
 	logger.Info("Listening...")
 	logger.WithError(http.ListenAndServe(":3030", mux)).Info("Finished serving")
