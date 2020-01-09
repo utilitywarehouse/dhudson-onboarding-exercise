@@ -31,6 +31,7 @@ jobs:
       - setup_remote_docker:
           version: 18.06.0-ce
       - run: make ci-docker-push
+      - run: make ci-k8s-deploy
 
 workflows:
   version: 2

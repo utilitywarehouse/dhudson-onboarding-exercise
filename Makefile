@@ -27,6 +27,8 @@ build: clean
 test:
 	$(GO) test ./...
 
+download:
+	${GO} mod download
 
 ci-docker-auth:		## Docker login for registry access
 	@echo "Logging in to $(DOCKER_REGISTRY) as $(DOCKER_ID)"
@@ -39,5 +41,6 @@ ci-docker-build: ci-docker-auth
 ci-docker-push: ci-docker-build
 	docker push $(DOCKER_REPOSITORY)
 
-download:
-	${GO} mod download
+ci-k8s-deploy:
+	@echo "Patching k8s deployment"
+	@curl -X PATCH -k -d '{"spec":{"template":{"spec":{"containers":[{"name":"$(DOCKER_CONTAINER_NAME)","image":"$(DOCKER_REPOSITORY):$(GIT_HASH)"}]}}}}' -H "Content-Type: application/strategic-merge-patch+json" -H "Authorization: Bearer $(K8S_DEV_TOKEN)" https://elb.master.k8s.dev.uw.systems/apis/apps/v1/namespaces/$(NAMESPACE)/deployments/$(DOCKER_CONTAINER_NAME)
